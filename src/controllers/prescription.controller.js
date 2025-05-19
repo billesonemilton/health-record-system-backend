@@ -1,66 +1,69 @@
-const {
-  createPrescription,
-  getAllPrescriptions,
-  getPrescriptionById,
-  updatePrescription,
-  deletePrescription
-} = require('../services/prescription.service');
-
-const createPrescriptionController = async (req, res) => {
+const PrescriptionService = require('../services/prescription.service');
+exports.createPrescriptionController = async (req, res) => {
   try {
-    const prescription = await createPrescription(req.body);
-    res.status(201).json(prescription);
+    const {
+      patientId,
+      doctorId,
+      medication,
+      dosage,
+      frequency,
+      duration,
+      notes
+    } = req.body;
+
+    const prescription = {
+      prescriptionId: `PR${Date.now()}`,  // auto-generated ID
+      recordId: `MR${Date.now()}`,        // example medical record ID
+      medication,
+      dosage,
+      frequency,
+      duration,
+      notes,
+      prescribedBy: doctorId,
+      date: new Date().toISOString()
+    };
+
+    const created = await PrescriptionService.createPrescription(prescription);
+    res.status(201).json(created);
   } catch (err) {
-    console.error('Create error:', err);
-    res.status(500).json({ error: 'Failed to create prescription' });
+    res.status(500).json({ error: err.message });
   }
 };
 
-const getAllPrescriptionsController = async (req, res) => {
+
+exports.getAllPrescriptionsController = async (req, res) => {
   try {
-    const prescriptions = await getAllPrescriptions();
-    res.status(200).json(prescriptions);
+    const prescriptions = await PrescriptionService.getAllPrescriptions();
+    res.json(prescriptions);
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Failed to retrieve prescriptions' });
+    res.status(500).json({ error: err.message });
   }
 };
 
-const getPrescriptionByIdController = async (req, res) => {
+exports.getPrescriptionByIdController = async (req, res) => {
   try {
-    const prescription = await getPrescriptionById(req.params.id);
-    if (!prescription) return res.status(404).json({ error: 'Prescription not found' });
-    res.status(200).json(prescription);
+    const prescription = await PrescriptionService.getPrescriptionById(req.params.id);
+    if (!prescription) return res.status(404).json({ error: 'Not found' });
+    res.json(prescription);
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Failed to retrieve prescription' });
+    res.status(500).json({ error: err.message });
   }
 };
 
-const updatePrescriptionController = async (req, res) => {
+exports.updatePrescriptionController = async (req, res) => {
   try {
-    const updated = await updatePrescription(req.params.id, req.body);
-    res.status(200).json(updated);
+    const updated = await PrescriptionService.updatePrescription(req.params.id, req.body);
+    res.json(updated);
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Failed to update prescription' });
+    res.status(500).json({ error: err.message });
   }
 };
 
-const deletePrescriptionController = async (req, res) => {
+exports.deletePrescriptionController = async (req, res) => {
   try {
-    await deletePrescription(req.params.id);
-    res.status(200).json({ message: 'Prescription deleted' });
+    await PrescriptionService.deletePrescription(req.params.id);
+    res.json({ success: true });
   } catch (err) {
-    console.error('Delete error:', err);
-    res.status(500).json({ error: 'Failed to delete prescription' });
+    res.status(500).json({ error: err.message });
   }
-};
-
-module.exports = {
-  createPrescriptionController,
-  getAllPrescriptionsController,
-  getPrescriptionByIdController,
-  updatePrescriptionController,
-  deletePrescriptionController
 };
